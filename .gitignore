@@ -1,0 +1,124 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# PyTorch
+*.pth
+*.pt
+*.ckpt
+checkpoints/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Model files (large files)
+*.pth
+*.pkl
+*.bin
+*.onnx
+*.pb
+models/*/
+!models/.gitkeep
+
+# Dataset files (large files)
+datadets_cityscapes/
+VIPL/datadets_cityscapes/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+
+# Output files
+outputs_masks/
+VIPL/outputs_masks/
+results/
+output/
+logs/
+*.log
+
+# Research papers (PDF files)
+*.pdf
+
+# Office files
+*.pptx
+*.ppt
+*.docx
+*.doc
+*.xlsx
+*.xls
+
+# Compressed files
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# System files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.cache
+
+# Git
+.git/
+.gitattributes
+
+# Claude
+.claude/
+
+# Detectron2
+VIPL/repos/detectron2/build/
+VIPL/repos/detectron2/detectron2.egg-info/
+
+# Mask2Former
+VIPL/repos/Mask2Former/output/
+VIPL/repos/Mask2Former/datasets/
+
+# Keep directory structure
+!.gitkeep
