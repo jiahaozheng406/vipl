@@ -22,21 +22,20 @@ A computer vision project for urban scene understanding and ground surface segme
 ### 🏗️ Project Structure
 
 ```
-vipl/
-├── VIPL/                           # Main project directory
-│   ├── datadets_cityscapes/        # Cityscapes dataset
-│   │   ├── leftImg8bit/            # Input images
-│   │   └── gtFine/                 # Ground truth annotations
-│   ├── models/                     # Pre-trained models
-│   │   └── mask2former/            # Mask2Former model files
-│   ├── repos/                      # External repositories
-│   │   ├── Mask2Former/            # Mask2Former implementation
-│   │   ├── detectron2/             # Detectron2 framework
-│   │   └── ground_parser/          # Ground segmentation scripts
-│   └── outputs_masks/              # Generated segmentation masks
-├── 会议/                           # Meeting materials
-└── [Research Papers]               # Related academic papers
+VIPL/
+├── datadets_cityscapes/        # Cityscapes dataset (not included)
+│   ├── leftImg8bit/            # Input images
+│   └── gtFine/                 # Ground truth annotations
+├── models/                     # Pre-trained models (not included)
+│   └── mask2former/            # Mask2Former model files
+├── repos/                      # External repositories
+│   ├── Mask2Former/            # Mask2Former implementation
+│   ├── detectron2/             # Detectron2 framework
+│   └── ground_parser/          # Ground segmentation scripts
+└── outputs_masks/              # Generated segmentation masks (not included)
 ```
+
+**Note**: Large files (datasets, models, outputs) are excluded from the repository.
 
 ### 🚀 Getting Started
 
@@ -77,17 +76,6 @@ pip install transformers opencv-python pillow tqdm
 1. Download the Cityscapes dataset from [official website](https://www.cityscapes-dataset.com/)
 2. Extract to `VIPL/datadets_cityscapes/`
 3. Ensure the following structure:
-```
-datadets_cityscapes/
-├── leftImg8bit/
-│   ├── train/
-│   ├── val/
-│   └── test/
-└── gtFine/
-    ├── train/
-    ├── val/
-    └── test/
-```
 
 #### Model Setup
 
@@ -139,17 +127,11 @@ MODEL_PATH = r"path/to/model"
 
 ### 📚 Research Context
 
-This project is related to research in:
-- Urban scene reconstruction and simulation
-- Real-to-sim-to-real frameworks for robotics
-- Physical-grounded 3D asset generation
-- Interactive urban environment generation
-
-Relevant papers included in the repository cover topics such as:
-- UrbanVerse: Scaling Urban Simulation
-- Vid2Sim: Realistic Simulation from Video
-- PhysX-3D: Physical-Grounded 3D Asset Generation
-- Point Scene Understanding via Instance Mesh Reconstruction
+This project focuses on ground surface segmentation for urban scene understanding, which is fundamental for:
+- Autonomous driving and navigation
+- Urban scene reconstruction
+- Robotics simulation environments
+- 3D scene generation
 
 ### 🛠️ Technologies Used
 
@@ -204,21 +186,20 @@ For questions or collaboration opportunities, please open an issue on GitHub.
 ### 🏗️ 项目结构
 
 ```
-vipl/
-├── VIPL/                           # 主项目目录
-│   ├── datadets_cityscapes/        # Cityscapes数据集
-│   │   ├── leftImg8bit/            # 输入图像
-│   │   └── gtFine/                 # 真值标注
-│   ├── models/                     # 预训练模型
-│   │   └── mask2former/            # Mask2Former模型文件
-│   ├── repos/                      # 外部仓库
-│   │   ├── Mask2Former/            # Mask2Former实现
-│   │   ├── detectron2/             # Detectron2框架
-│   │   └── ground_parser/          # 地面分割脚本
-│   └── outputs_masks/              # 生成的分割掩码
-├── 会议/                           # 会议资料
-└── [研究论文]                       # 相关学术论文
+VIPL/
+├── datadets_cityscapes/        # Cityscapes数据集（不包含在仓库中）
+│   ├── leftImg8bit/            # 输入图像
+│   └── gtFine/                 # 真值标注
+├── models/                     # 预训练模型（不包含在仓库中）
+│   └── mask2former/            # Mask2Former模型文件
+├── repos/                      # 外部仓库
+│   ├── Mask2Former/            # Mask2Former实现
+│   ├── detectron2/             # Detectron2框架
+│   └── ground_parser/          # 地面分割脚本
+└── outputs_masks/              # 生成的分割掩码（不包含在仓库中）
 ```
+
+**注意**：大文件（数据集、模型、输出）不包含在仓库中。
 
 ### 🚀 快速开始
 
@@ -259,17 +240,6 @@ pip install transformers opencv-python pillow tqdm
 1. 从[官方网站](https://www.cityscapes-dataset.com/)下载Cityscapes数据集
 2. 解压到 `VIPL/datadets_cityscapes/`
 3. 确保以下目录结构：
-```
-datadets_cityscapes/
-├── leftImg8bit/
-│   ├── train/
-│   ├── val/
-│   └── test/
-└── gtFine/
-    ├── train/
-    ├── val/
-    └── test/
-```
 
 #### 模型配置
 
@@ -321,17 +291,11 @@ MODEL_PATH = r"模型路径"
 
 ### 📚 研究背景
 
-本项目与以下研究方向相关：
-- 城市场景重建与仿真
-- 机器人的真实-仿真-真实框架
-- 基于物理的3D资产生成
-- 交互式城市环境生成
-
-仓库中包含的相关论文涵盖以下主题：
-- UrbanVerse：大规模城市仿真
-- Vid2Sim：基于视频的真实仿真
-- PhysX-3D：基于物理的3D资产生成
-- 通过实例网格重建理解点云场景
+本项目专注于城市场景理解中的地面分割，这对以下领域至关重要：
+- 自动驾驶与导航
+- 城市场景重建
+- 机器人仿真环境
+- 3D场景生成
 
 ### 🛠️ 使用技术
 
