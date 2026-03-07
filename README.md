@@ -12,661 +12,485 @@
 <a name="english"></a>
 ## 📋 Overview
 
-A comprehensive computer vision toolkit for urban scene understanding and semantic segmentation using state-of-the-art models (Mask2Former, SAM 2.1) on the Cityscapes dataset. This project provides multiple segmentation approaches for extracting ground surfaces, multi-class objects, and instance-level masks from urban street scenes.
+A computer vision toolkit for urban scene segmentation using Mask2Former, SAM 2.1, and SAM 3 on the Cityscapes dataset. Provides 5 scripts covering ground extraction, building segmentation, multi-class parsing, and instance segmentation.
 
 ### 🎯 Features
 
-- **Ground Surface Extraction**: Automatically extracts binary masks for roads and sidewalks using Mask2Former
-- **Multi-Class Segmentation**: Extracts masks for road, sidewalk, vegetation, terrain, and sky
-- **Instance Segmentation**: Full object segmentation using SAM 2.1 with automatic mask generation
-- **Cityscapes Dataset Support**: Processes standard Cityscapes dataset structure (train/val/test splits)
-- **GPU Acceleration**: CUDA support for faster inference with optimized batch processing
-- **Visualization**: Generates color-coded contrast images for easy inspection
-- **Multiple Output Formats**: Produces separate masks for each class and combined visualizations
-- **Flexible Configuration**: Easy-to-modify paths and parameters for different setups
+- **Ground Segmentation**: Road + sidewalk via Mask2Former panoptic segmentation
+- **Building Segmentation**: Dedicated building mask extraction
+- **Multi-Class Parsing**: 5-class urban parsing (road, sidewalk, vegetation, terrain, sky)
+- **Instance Segmentation (SAM 2.1)**: Automatic mask generation for all objects
+- **Text-Prompted Segmentation (SAM 3)**: Language-guided 6-class segmentation
+- **GPU Acceleration**: CUDA support with optimized batch processing
+- **Color Visualization**: Contrast images for every segmentation type
 
 ### 🏗️ Project Structure
 
 ```
 VIPL/
-├── datadets_cityscapes/        # Cityscapes dataset (not included)
-│   ├── leftImg8bit/            # Input images
-│   └── gtFine/                 # Ground truth annotations
-├── models/                     # Pre-trained models (not included)
-│   └── mask2former/            # Mask2Former model files
-├── repos/                      # External repositories
-│   ├── Mask2Former/            # Mask2Former implementation
-│   ├── detectron2/             # Detectron2 framework
-│   └── ground_parser/          # Ground segmentation scripts
-└── outputs_masks/              # Generated segmentation masks (not included)
+├── datadets_cityscapes/            # Cityscapes dataset (not included)
+│   ├── leftImg8bit/{train,val,test}/{city}/
+│   └── gtFine/{train,val,test}/{city}/
+├── models/                         # Pre-trained models (not included)
+│   ├── mask2former/mask2former_cityscapes/
+│   ├── sam2/sam2.1_hiera_large.pt
+│   └── sam3/
+├── repos/
+│   ├── Mask2Former/                # (not included)
+│   ├── detectron2/                 # (not included)
+│   └── ground_parser/              # ✅ Scripts in this repo
+│       ├── run_cityscapes_ground_mask2former.py
+│       ├── run_cityscapes_multiclass_mask2former.py
+│       ├── run_cityscapes_building_mask2former.py
+│       ├── run_cityscapes_ground_sam2.py
+│       └── run_cityscapes_ground_sam3.py
+└── outputs_masks*/                 # Generated masks (not included)
 ```
-
-**Note**: Large files (datasets, models, outputs) are excluded from the repository.
 
 ### 🚀 Getting Started
 
 #### Prerequisites
-
-- Python 3.8+
-- PyTorch 1.10+
-- CUDA-capable GPU (recommended)
-- Git
+- Python 3.8+, PyTorch 1.10+, CUDA GPU (8 GB+ VRAM)
 
 #### Installation
 
-1. Clone the repository:
 ```bash
 git clone https://github.com/jiahaozheng406/vipl.git
-cd vipl
+cd vipl/VIPL/repos/detectron2 && pip install -e .
+cd ../Mask2Former && pip install -r requirements.txt
+pip install transformers opencv-python pillow tqdm omegaconf hydra-core
 ```
 
-2. Install dependencies:
-```bash
-cd VIPL/repos/Mask2Former
-pip install -r requirements.txt
-```
+#### Dataset
+Download [Cityscapes](https://www.cityscapes-dataset.com/) → extract to `VIPL/datadets_cityscapes/`
 
-3. Install Detectron2:
-```bash
-cd ../detectron2
-pip install -e .
-```
+#### Models
 
-4. Install additional requirements:
-```bash
-pip install transformers opencv-python pillow tqdm
-```
+| Model | Download | Path |
+|-------|----------|------|
+| Mask2Former (Cityscapes) | [Hugging Face](https://huggingface.co/facebook/mask2former-swin-large-cityscapes-panoptic) | `models/mask2former/mask2former_cityscapes/` |
+| SAM 2.1 Large | [Meta AI](https://github.com/facebookresearch/segment-anything-2) | `models/sam2/sam2.1_hiera_large.pt` |
+| SAM 3 | [Hugging Face](https://huggingface.co/facebook/sam3) | `models/sam3/` |
 
-#### Dataset Setup
+---
 
-1. Download the Cityscapes dataset from [official website](https://www.cityscapes-dataset.com/)
-2. Extract to `VIPL/datadets_cityscapes/`
-3. Ensure the following structure:
+### 💻 Scripts
 
-#### Model Setup
+| Script | Model | Target Classes | Output Dir |
+|--------|-------|---------------|------------|
+| `run_cityscapes_ground_mask2former.py` | Mask2Former | road, sidewalk | `outputs_masks/` |
+| `run_cityscapes_multiclass_mask2former.py` | Mask2Former | road, sidewalk, vegetation, terrain, sky | `outputs_masks_multiclass/` |
+| `run_cityscapes_building_mask2former.py` | Mask2Former | building | `outputs_masks_building/` |
+| `run_cityscapes_ground_sam2.py` | SAM 2.1 | all objects (automatic) | `outputs_masks_sam/` |
+| `run_cityscapes_ground_sam3.py` | SAM 3 | road, sidewalk, building, vegetation, terrain, sky | `outputs_masks_sam3/` |
 
-Download the pre-trained Mask2Former model for Cityscapes and place it in:
-```
-VIPL/models/mask2former/mask2former_cityscapes/
-```
+All scripts run from `VIPL/repos/ground_parser/`. Edit paths at the top of each file before running.
 
-### 💻 Usage
+---
 
-The project includes three main segmentation scripts:
-
-#### 1. Ground Surface Segmentation (Mask2Former)
-
-Extracts binary masks for roads and sidewalks:
+#### 1. Ground Segmentation — `run_cityscapes_ground_mask2former.py`
 
 ```bash
-cd VIPL/repos/ground_parser
 python run_cityscapes_ground_mask2former.py
 ```
 
-**Output files per image:**
-- `{base}_road.png` - Binary mask for road surfaces (255=road, 0=background)
-- `{base}_sidewalk.png` - Binary mask for sidewalk surfaces
-- `{base}_ground.png` - Combined ground surface mask (road + sidewalk)
-- `{base}_contrast.png` - Visualization overlay (red=road, blue=sidewalk)
-
-**Configuration:**
+Config:
 ```python
-CITYSCAPES_ROOT = r"path/to/cityscapes"
-OUTPUT_ROOT = r"path/to/output"
-MODEL_PATH = r"path/to/mask2former_cityscapes"
+CITYSCAPES_ROOT = r"path/to/datadets_cityscapes"
+OUTPUT_ROOT     = r"path/to/outputs_masks"
+MODEL_PATH      = r"path/to/models/mask2former/mask2former_cityscapes"
+TARGET_LABELS   = {"road": ["road"], "sidewalk": ["sidewalk", "pavement"]}
 ```
 
-#### 2. Multi-Class Segmentation (Mask2Former)
+Output per image:
+```
+{base}_road.png       # Binary mask (255=road)
+{base}_sidewalk.png
+{base}_ground.png     # Combined road + sidewalk
+{base}_contrast.png   # Overlay: red=road, blue=sidewalk
+```
 
-Extracts masks for multiple urban scene classes:
+---
+
+#### 2. Multi-Class Segmentation — `run_cityscapes_multiclass_mask2former.py`
 
 ```bash
-cd VIPL/repos/ground_parser
 python run_cityscapes_multiclass_mask2former.py
 ```
 
-**Target classes:**
-- Road
-- Sidewalk
-- Vegetation (trees, plants)
-- Terrain (ground)
-- Sky
+Config:
+```python
+TARGET_LABELS = {
+    "road": ["road"], "sidewalk": ["sidewalk", "pavement"],
+    "vegetation": ["vegetation", "tree", "plant"],
+    "terrain": ["terrain", "ground"], "sky": ["sky"]
+}
+```
 
-**Output files per image:**
-- `{base}_road.png`
-- `{base}_sidewalk.png`
-- `{base}_vegetation.png`
-- `{base}_terrain.png`
-- `{base}_sky.png`
-- `{base}_contrast.png` - Multi-color visualization
+Output: `{base}_{class}.png` for each class + `{base}_contrast.png`
 
-#### 3. Instance Segmentation (SAM 2.1)
+---
 
-Full automatic object segmentation using Segment Anything Model:
+#### 3. Building Segmentation — `run_cityscapes_building_mask2former.py`
 
 ```bash
-cd VIPL/repos/ground_parser
-python run_cityscapes_ground_sam.py
+python run_cityscapes_building_mask2former.py
 ```
 
-**Features:**
-- Automatic mask generation for all objects
-- Optimized parameters for faster processing (16 points per side)
-- Color-coded instance masks
-- Configurable thresholds for quality control
-
-**Configuration:**
+Config:
 ```python
-CHECKPOINT_PATH = r"path/to/sam2.1_hiera_large.pt"
-POINTS_PER_SIDE = 16  # Sampling density
-PRED_IOU_THRESH = 0.86  # Quality threshold
-MIN_MASK_REGION_AREA = 200  # Minimum object size
+TARGET_LABELS = {"building": ["building", "buildings"]}
 ```
 
-**Output:**
-- `{base}_sam_masks.png` - Color-coded instance segmentation
-- Individual mask files for each detected object
+Output: `{base}_building.png` + `{base}_contrast.png`
 
-### 📊 Supported Classes
+---
 
-#### Mask2Former (Cityscapes)
-The segmentation models target the following Cityscapes classes:
-- **Road**: Main road surfaces
-- **Sidewalk**: Pedestrian walkways and pavements
-- **Vegetation**: Trees, plants, and greenery
-- **Terrain**: Natural ground surfaces
-- **Sky**: Sky regions
+#### 4. Instance Segmentation (SAM 2.1) — `run_cityscapes_ground_sam2.py`
 
-#### SAM 2.1 (Universal)
-- Automatic detection of all objects in the scene
-- Instance-level segmentation without predefined classes
-- Suitable for general object extraction and analysis
+```bash
+python run_cityscapes_ground_sam2.py
+```
+
+Config:
+```python
+CHECKPOINT_PATH        = r"path/to/models/sam2/sam2.1_hiera_large.pt"
+POINTS_PER_SIDE        = 16    # 32=accurate, 16=~4x faster
+PRED_IOU_THRESH        = 0.86
+STABILITY_SCORE_THRESH = 0.92
+MIN_MASK_REGION_AREA   = 200
+```
+
+Output: `{base}_sam_masks.png` — color-coded instance segmentation
+
+---
+
+#### 5. Text-Prompted Segmentation (SAM 3) — `run_cityscapes_ground_sam3.py`
+
+```bash
+python run_cityscapes_ground_sam3.py
+```
+
+Config:
+```python
+MODEL_DIR    = r"path/to/models/sam3"
+CATEGORIES   = {"road": "road", "sidewalk": "sidewalk", "building": "building",
+                "vegetation": "vegetation", "terrain": "terrain", "sky": "sky"}
+SCORE_THRESH = 0.5
+MASK_THRESH  = 0.5
+```
+
+Output: `{base}_{class}.png` per category + `{base}_contrast.png`
+
+---
 
 ### 🧪 Experiments & Results
 
-#### Performance Metrics
+#### Performance
 
-| Model | Speed (img/s) | GPU Memory | Accuracy |
-|-------|--------------|------------|----------|
-| Mask2Former (Ground) | ~2-3 | 4-6 GB | High precision for road/sidewalk |
-| Mask2Former (Multi) | ~2-3 | 4-6 GB | Excellent for urban classes |
-| SAM 2.1 (Optimized) | ~0.5-1 | 8-12 GB | Universal object detection |
+| Script | Model | Speed (img/s) | GPU Memory | Classes |
+|--------|-------|:---:|:---:|:---:|
+| `ground_mask2former` | Mask2Former | ~2–3 | 4–6 GB | 2 |
+| `multiclass_mask2former` | Mask2Former | ~2–3 | 4–6 GB | 5 |
+| `building_mask2former` | Mask2Former | ~2–3 | 4–6 GB | 1 |
+| `ground_sam2` | SAM 2.1 | ~0.5–1 | 8–12 GB | all |
+| `ground_sam3` | SAM 3 | ~0.5–1 | 8–12 GB | 6 |
 
-**Hardware tested:** NVIDIA RTX 3080/4090
-
-#### Output Examples
-
-**Ground Segmentation:**
-- Input: Urban street scene (2048×1024)
-- Output: Binary masks + color overlay
-- Processing time: ~0.3-0.5s per image
-
-**Multi-Class Segmentation:**
-- Input: Urban street scene
-- Output: 5 separate class masks + visualization
-- Processing time: ~0.3-0.5s per image
-
-**SAM Instance Segmentation:**
-- Input: Urban street scene
-- Output: 50-200 instance masks per image
-- Processing time: ~1-2s per image (optimized)
+> Tested on NVIDIA RTX 3080/4090, input 2048×1024.
 
 #### Optimization Tips
 
-1. **Batch Processing**: Process multiple images in parallel
-2. **GPU Memory**: Use mixed precision (FP16) for larger batches
-3. **SAM Speed**: Reduce `POINTS_PER_SIDE` from 32 to 16 for 4x speedup
-4. **Quality vs Speed**: Adjust IOU thresholds based on requirements
+1. **SAM speed**: `POINTS_PER_SIDE = 16` → ~4× faster than default 32
+2. **Noise filter**: Increase `MIN_MASK_REGION_AREA` to suppress small spurious masks
+3. **Recall**: Lower `PRED_IOU_THRESH` to detect more small objects
+4. **Memory**: Use FP16 for larger batch sizes
 
-### 🔧 Configuration
+#### Class → Color Mapping
 
-Each script has configurable parameters at the top of the file:
+| Class | Scripts | Contrast Color |
+|-------|---------|:-:|
+| Road | ground, multiclass, SAM 3 | Red |
+| Sidewalk | ground, multiclass, SAM 3 | Blue |
+| Building | building, SAM 3 | Yellow |
+| Vegetation | multiclass, SAM 3 | Green |
+| Terrain | multiclass, SAM 3 | Brown |
+| Sky | multiclass, SAM 3 | Cyan |
+| All objects | SAM 2.1 | Random per instance |
 
-#### Ground Segmentation Script
-```python
-# run_cityscapes_ground_mask2former.py
-CITYSCAPES_ROOT = r"E:\vipl\VIPL\datadets_cityscapes"
-OUTPUT_ROOT = r"E:\vipl\VIPL\outputs_masks"
-MODEL_PATH = r"E:\vipl\VIPL\models\mask2former\mask2former_cityscapes"
-
-TARGET_LABELS = {
-    "road": ["road"],
-    "sidewalk": ["sidewalk", "side walk", "pavement"]
-}
-```
-
-#### Multi-Class Segmentation Script
-```python
-# run_cityscapes_multiclass_mask2former.py
-OUTPUT_ROOT = r"E:\vipl\VIPL\outputs_masks_multiclass"
-
-TARGET_LABELS = {
-    "road": ["road"],
-    "sidewalk": ["sidewalk", "side walk", "pavement"],
-    "vegetation": ["vegetation", "tree", "plant"],
-    "terrain": ["terrain", "ground"],
-    "sky": ["sky"]
-}
-```
-
-#### SAM Instance Segmentation Script
-```python
-# run_cityscapes_ground_sam.py
-OUTPUT_ROOT = r"E:\vipl\VIPL\outputs_masks_sam"
-CHECKPOINT_PATH = r"E:\vipl\VIPL\models\sam2\sam2.1_hiera_large.pt"
-
-# Performance tuning
-POINTS_PER_SIDE = 16  # 16=fast, 32=accurate
-PRED_IOU_THRESH = 0.86  # Higher=stricter quality
-STABILITY_SCORE_THRESH = 0.92
-MIN_MASK_REGION_AREA = 200  # Filter small objects
-```
+---
 
 ### 📚 Research Context
 
-This project focuses on ground surface segmentation for urban scene understanding, which is fundamental for:
-- Autonomous driving and navigation
-- Urban scene reconstruction
-- Robotics simulation environments
-- 3D scene generation
+Supports research in:
+- Autonomous driving perception
+- Urban scene reconstruction and simulation
+- Robot navigation and traversable surface detection
+- 3D scene generation from segmentation priors
 
-### 🛠️ Technologies Used
+### 🛠️ Technologies
 
-- **Mask2Former**: Universal image segmentation architecture for panoptic segmentation
-  - Paper: [Masked-attention Mask Transformer for Universal Image Segmentation](https://arxiv.org/abs/2112.01527)
-  - Pre-trained on Cityscapes dataset (19 classes)
-
-- **SAM 2.1 (Segment Anything Model)**: Universal instance segmentation
-  - Paper: [Segment Anything](https://arxiv.org/abs/2304.02643)
-  - Zero-shot object segmentation capability
-
-- **Detectron2**: Facebook AI Research's detection and segmentation platform
-  - Modular design for computer vision tasks
-
-- **PyTorch**: Deep learning framework (1.10+)
-- **Transformers**: Hugging Face model library for Mask2Former
-- **OpenCV**: Computer vision operations and image processing
-- **Cityscapes Dataset**: Urban street scene benchmark (5000 fine annotations)
-
-### 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-### 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-### 📧 Contact
-
-For questions or collaboration opportunities, please open an issue on GitHub.
-
-### 🙏 Acknowledgments
-
-- [Cityscapes Dataset](https://www.cityscapes-dataset.com/) for providing the urban scene dataset
-- [Mask2Former](https://github.com/facebookresearch/Mask2Former) for the segmentation architecture
-- [Detectron2](https://github.com/facebookresearch/detectron2) for the detection framework
+| Tool | Role | Reference |
+|------|------|-----------|
+| Mask2Former | Panoptic segmentation | [arXiv:2112.01527](https://arxiv.org/abs/2112.01527) |
+| SAM 2.1 | Universal instance segmentation | [arXiv:2408.00714](https://arxiv.org/abs/2408.00714) |
+| SAM 3 | Text-prompted segmentation | [Meta AI](https://github.com/facebookresearch/sam3) |
+| Detectron2 | Detection/segmentation platform | [GitHub](https://github.com/facebookresearch/detectron2) |
+| PyTorch | Deep learning framework | [pytorch.org](https://pytorch.org/) |
+| Transformers | Model loading | [huggingface.co](https://huggingface.co/) |
+| Cityscapes | Urban benchmark dataset | [cityscapes-dataset.com](https://www.cityscapes-dataset.com/) |
 
 ### ⚠️ Notes
 
-- **Large Files**: Model files and datasets are not included in this repository due to size constraints
-  - Mask2Former model: ~200MB
-  - SAM 2.1 model: ~900MB
-  - Cityscapes dataset: ~11GB (leftImg8bit) + ~250MB (gtFine)
+- Model files and datasets are **not** included (Mask2Former ~200 MB, SAM 2.1 ~900 MB, Cityscapes ~11 GB)
+- Mask2Former: 8 GB+ VRAM recommended; SAM: 12 GB+ VRAM recommended
+- Cityscapes requires registration and license agreement
 
-- **Hardware Requirements**:
-  - GPU with 8GB+ VRAM recommended for Mask2Former
-  - GPU with 12GB+ VRAM recommended for SAM 2.1
-  - CPU-only mode available but significantly slower
+### 📝 License
+MIT License — see [LICENSE](LICENSE)
 
-- **Processing Time**:
-  - Depends on dataset size and hardware capabilities
-  - Full Cityscapes dataset (~5000 images): 30-60 minutes with GPU
-
-- **Dataset License**:
-  - Ensure proper Cityscapes dataset license compliance
-  - Academic use: Free with registration
-  - Commercial use: Requires separate license
-
-- **Model Weights**:
-  - Download Mask2Former from [Hugging Face](https://huggingface.co/facebook/mask2former-swin-large-cityscapes-panoptic)
-  - Download SAM 2.1 from [Meta AI](https://github.com/facebookresearch/segment-anything-2)
-
-### 📈 Use Cases
-
-- **Autonomous Driving**: Road and sidewalk detection for navigation
-- **Urban Planning**: Analyzing street infrastructure and vegetation coverage
-- **3D Reconstruction**: Ground plane extraction for scene reconstruction
-- **Robotics**: Traversable surface detection for mobile robots
-- **Dataset Annotation**: Semi-automatic mask generation for training data
+### 🙏 Acknowledgments
+- [Cityscapes](https://www.cityscapes-dataset.com/) · [Mask2Former](https://github.com/facebookresearch/Mask2Former) · [SAM](https://github.com/facebookresearch/segment-anything-2) · [Detectron2](https://github.com/facebookresearch/detectron2)
 
 ---
 
 <a name="chinese"></a>
 ## 📋 项目概述
 
-这是一个综合性的计算机视觉工具包，使用最先进的模型（Mask2Former、SAM 2.1）在Cityscapes数据集上进行城市场景理解和语义分割。本项目提供多种分割方法，用于从城市街景中提取地面、多类别物体和实例级掩码。
+使用 Mask2Former、SAM 2.1 和 SAM 3 在 Cityscapes 数据集上进行城市场景语义分割的工具包。提供 5 个脚本，涵盖地面提取、建筑分割、多类别解析和实例分割。
 
 ### 🎯 主要功能
 
-- **地面提取**：使用Mask2Former自动提取道路和人行道的二值掩码
-- **多类别分割**：提取道路、人行道、植被、地形和天空的掩码
-- **实例分割**：使用SAM 2.1进行全物体自动分割
-- **Cityscapes数据集支持**：处理标准Cityscapes数据集结构（训练/验证/测试集）
-- **GPU加速**：支持CUDA加速推理，优化批处理性能
-- **可视化**：生成带有颜色编码的对比图像，便于检查
-- **多种输出格式**：为每个类别生成独立掩码和组合可视化
-- **灵活配置**：易于修改路径和参数以适应不同设置
+- **地面分割**：使用 Mask2Former 提取道路和人行道
+- **建筑分割**：专用建筑物掩码提取
+- **多类别解析**：5 类城市解析（道路、人行道、植被、地形、天空）
+- **实例分割（SAM 2.1）**：全自动物体掩码生成
+- **文本提示分割（SAM 3）**：基于语言的 6 类分割
+- **GPU 加速**：CUDA 支持，优化批处理
+- **颜色可视化**：每种分割类型生成对比图
 
 ### 🏗️ 项目结构
 
 ```
 VIPL/
-├── datadets_cityscapes/        # Cityscapes数据集（不包含在仓库中）
-│   ├── leftImg8bit/            # 输入图像
-│   └── gtFine/                 # 真值标注
-├── models/                     # 预训练模型（不包含在仓库中）
-│   └── mask2former/            # Mask2Former模型文件
-├── repos/                      # 外部仓库
-│   ├── Mask2Former/            # Mask2Former实现
-│   ├── detectron2/             # Detectron2框架
-│   └── ground_parser/          # 地面分割脚本
-└── outputs_masks/              # 生成的分割掩码（不包含在仓库中）
+├── datadets_cityscapes/            # Cityscapes 数据集（不含）
+│   ├── leftImg8bit/{train,val,test}/{city}/
+│   └── gtFine/{train,val,test}/{city}/
+├── models/                         # 预训练模型（不含）
+│   ├── mask2former/mask2former_cityscapes/
+│   ├── sam2/sam2.1_hiera_large.pt
+│   └── sam3/
+├── repos/
+│   ├── Mask2Former/                # 不含
+│   ├── detectron2/                 # 不含
+│   └── ground_parser/              # ✅ 本仓库核心脚本
+│       ├── run_cityscapes_ground_mask2former.py
+│       ├── run_cityscapes_multiclass_mask2former.py
+│       ├── run_cityscapes_building_mask2former.py
+│       ├── run_cityscapes_ground_sam2.py
+│       └── run_cityscapes_ground_sam3.py
+└── outputs_masks*/                 # 生成掩码（不含）
 ```
-
-**注意**：大文件（数据集、模型、输出）不包含在仓库中。
 
 ### 🚀 快速开始
 
 #### 环境要求
+- Python 3.8+，PyTorch 1.10+，CUDA GPU（8 GB+ 显存）
 
-- Python 3.8+
-- PyTorch 1.10+
-- 支持CUDA的GPU（推荐）
-- Git
+#### 安装
 
-#### 安装步骤
-
-1. 克隆仓库：
 ```bash
 git clone https://github.com/jiahaozheng406/vipl.git
-cd vipl
+cd vipl/VIPL/repos/detectron2 && pip install -e .
+cd ../Mask2Former && pip install -r requirements.txt
+pip install transformers opencv-python pillow tqdm omegaconf hydra-core
 ```
 
-2. 安装依赖：
-```bash
-cd VIPL/repos/Mask2Former
-pip install -r requirements.txt
-```
+#### 数据集
+从[官方网站](https://www.cityscapes-dataset.com/)下载 → 解压至 `VIPL/datadets_cityscapes/`
 
-3. 安装Detectron2：
-```bash
-cd ../detectron2
-pip install -e .
-```
+#### 模型下载
 
-4. 安装额外依赖：
-```bash
-pip install transformers opencv-python pillow tqdm
-```
+| 模型 | 下载 | 放置路径 |
+|------|------|---------|
+| Mask2Former (Cityscapes) | [Hugging Face](https://huggingface.co/facebook/mask2former-swin-large-cityscapes-panoptic) | `models/mask2former/mask2former_cityscapes/` |
+| SAM 2.1 Large | [Meta AI](https://github.com/facebookresearch/segment-anything-2) | `models/sam2/sam2.1_hiera_large.pt` |
+| SAM 3 | [Hugging Face](https://huggingface.co/facebook/sam3) | `models/sam3/` |
 
-#### 数据集配置
+---
 
-1. 从[官方网站](https://www.cityscapes-dataset.com/)下载Cityscapes数据集
-2. 解压到 `VIPL/datadets_cityscapes/`
-3. 确保以下目录结构：
+### 💻 脚本列表
 
-#### 模型配置
+| 脚本 | 模型 | 目标类别 | 输出目录 |
+|------|------|---------|---------|
+| `run_cityscapes_ground_mask2former.py` | Mask2Former | 道路、人行道 | `outputs_masks/` |
+| `run_cityscapes_multiclass_mask2former.py` | Mask2Former | 道路、人行道、植被、地形、天空 | `outputs_masks_multiclass/` |
+| `run_cityscapes_building_mask2former.py` | Mask2Former | 建筑 | `outputs_masks_building/` |
+| `run_cityscapes_ground_sam2.py` | SAM 2.1 | 所有物体（自动） | `outputs_masks_sam/` |
+| `run_cityscapes_ground_sam3.py` | SAM 3 | 道路、人行道、建筑、植被、地形、天空 | `outputs_masks_sam3/` |
 
-下载Cityscapes预训练的Mask2Former模型并放置在：
-```
-VIPL/models/mask2former/mask2former_cityscapes/
-```
+所有脚本在 `VIPL/repos/ground_parser/` 目录下运行，运行前修改脚本顶部路径配置。
 
-### 💻 使用方法
+---
 
-项目包含三个主要分割脚本：
-
-#### 1. 地面分割（Mask2Former）
-
-提取道路和人行道的二值掩码：
+#### 1. 地面分割 — `run_cityscapes_ground_mask2former.py`
 
 ```bash
-cd VIPL/repos/ground_parser
 python run_cityscapes_ground_mask2former.py
 ```
 
-**每张图像的输出文件：**
-- `{base}_road.png` - 道路表面的二值掩码（255=道路，0=背景）
-- `{base}_sidewalk.png` - 人行道表面的二值掩码
-- `{base}_ground.png` - 组合地面掩码（道路+人行道）
-- `{base}_contrast.png` - 可视化叠加图（红色=道路，蓝色=人行道）
-
-**配置：**
+配置：
 ```python
-CITYSCAPES_ROOT = r"cityscapes数据集路径"
-OUTPUT_ROOT = r"输出路径"
-MODEL_PATH = r"mask2former_cityscapes模型路径"
+CITYSCAPES_ROOT = r"path/to/datadets_cityscapes"
+OUTPUT_ROOT     = r"path/to/outputs_masks"
+MODEL_PATH      = r"path/to/models/mask2former/mask2former_cityscapes"
+TARGET_LABELS   = {"road": ["road"], "sidewalk": ["sidewalk", "pavement"]}
 ```
 
-#### 2. 多类别分割（Mask2Former）
+每张图像输出：
+```
+{base}_road.png       # 道路二值掩码（255=道路）
+{base}_sidewalk.png   # 人行道二值掩码
+{base}_ground.png     # 组合掩码
+{base}_contrast.png   # 叠加图（红=道路，蓝=人行道）
+```
 
-提取多个城市场景类别的掩码：
+---
+
+#### 2. 多类别分割 — `run_cityscapes_multiclass_mask2former.py`
 
 ```bash
-cd VIPL/repos/ground_parser
 python run_cityscapes_multiclass_mask2former.py
 ```
 
-**目标类别：**
-- 道路（Road）
-- 人行道（Sidewalk）
-- 植被（Vegetation）- 树木、植物
-- 地形（Terrain）- 地面
-- 天空（Sky）
+配置：
+```python
+TARGET_LABELS = {
+    "road": ["road"], "sidewalk": ["sidewalk", "pavement"],
+    "vegetation": ["vegetation", "tree", "plant"],
+    "terrain": ["terrain", "ground"], "sky": ["sky"]
+}
+```
 
-**每张图像的输出文件：**
-- `{base}_road.png`
-- `{base}_sidewalk.png`
-- `{base}_vegetation.png`
-- `{base}_terrain.png`
-- `{base}_sky.png`
-- `{base}_contrast.png` - 多色可视化
+每张图像输出：各类别 `{base}_{class}.png` + `{base}_contrast.png`
 
-#### 3. 实例分割（SAM 2.1）
+---
 
-使用Segment Anything Model进行全自动物体分割：
+#### 3. 建筑分割 — `run_cityscapes_building_mask2former.py`
 
 ```bash
-cd VIPL/repos/ground_parser
-python run_cityscapes_ground_sam.py
+python run_cityscapes_building_mask2former.py
 ```
 
-**特性：**
-- 自动为所有物体生成掩码
-- 优化参数以加快处理速度（每边16个采样点）
-- 颜色编码的实例掩码
-- 可配置的质量控制阈值
-
-**配置：**
+配置：
 ```python
-CHECKPOINT_PATH = r"sam2.1_hiera_large.pt路径"
-POINTS_PER_SIDE = 16  # 采样密度
-PRED_IOU_THRESH = 0.86  # 质量阈值
-MIN_MASK_REGION_AREA = 200  # 最小物体大小
+TARGET_LABELS = {"building": ["building", "buildings"]}
 ```
 
-**输出：**
-- `{base}_sam_masks.png` - 颜色编码的实例分割
-- 每个检测到的物体的独立掩码文件
+每张图像输出：`{base}_building.png` + `{base}_contrast.png`
 
-### 📊 支持的类别
+---
 
-#### Mask2Former（Cityscapes）
-分割模型针对以下Cityscapes类别：
-- **道路（Road）**：主要道路表面
-- **人行道（Sidewalk）**：行人步道和人行道
-- **植被（Vegetation）**：树木、植物和绿化
-- **地形（Terrain）**：自然地面
-- **天空（Sky）**：天空区域
+#### 4. 实例分割（SAM 2.1）— `run_cityscapes_ground_sam2.py`
 
-#### SAM 2.1（通用）
-- 自动检测场景中的所有物体
-- 实例级分割，无需预定义类别
-- 适用于通用物体提取和分析
+```bash
+python run_cityscapes_ground_sam2.py
+```
+
+配置：
+```python
+CHECKPOINT_PATH        = r"path/to/models/sam2/sam2.1_hiera_large.pt"
+POINTS_PER_SIDE        = 16    # 32=精确，16=快速（约4倍速度提升）
+PRED_IOU_THRESH        = 0.86
+STABILITY_SCORE_THRESH = 0.92
+MIN_MASK_REGION_AREA   = 200
+```
+
+输出：`{base}_sam_masks.png` — 颜色编码的实例分割
+
+---
+
+#### 5. 文本提示分割（SAM 3）— `run_cityscapes_ground_sam3.py`
+
+```bash
+python run_cityscapes_ground_sam3.py
+```
+
+配置：
+```python
+MODEL_DIR    = r"path/to/models/sam3"
+CATEGORIES   = {"road": "road", "sidewalk": "sidewalk", "building": "building",
+                "vegetation": "vegetation", "terrain": "terrain", "sky": "sky"}
+SCORE_THRESH = 0.5
+MASK_THRESH  = 0.5
+```
+
+输出：各类别 `{base}_{class}.png` + `{base}_contrast.png`
+
+---
 
 ### 🧪 实验与结果
 
-#### 性能指标
+#### 性能对比
 
-| 模型 | 速度（图/秒） | GPU显存 | 准确度 |
-|------|-------------|---------|--------|
-| Mask2Former（地面） | ~2-3 | 4-6 GB | 道路/人行道高精度 |
-| Mask2Former（多类） | ~2-3 | 4-6 GB | 城市类别优秀 |
-| SAM 2.1（优化） | ~0.5-1 | 8-12 GB | 通用物体检测 |
+| 脚本 | 模型 | 速度（图/秒） | 显存 | 类别数 |
+|------|------|:---:|:---:|:---:|
+| `ground_mask2former` | Mask2Former | ~2–3 | 4–6 GB | 2 |
+| `multiclass_mask2former` | Mask2Former | ~2–3 | 4–6 GB | 5 |
+| `building_mask2former` | Mask2Former | ~2–3 | 4–6 GB | 1 |
+| `ground_sam2` | SAM 2.1 | ~0.5–1 | 8–12 GB | 全部 |
+| `ground_sam3` | SAM 3 | ~0.5–1 | 8–12 GB | 6 |
 
-**测试硬件：** NVIDIA RTX 3080/4090
-
-#### 输出示例
-
-**地面分割：**
-- 输入：城市街景（2048×1024）
-- 输出：二值掩码 + 颜色叠加
-- 处理时间：每张图像约0.3-0.5秒
-
-**多类别分割：**
-- 输入：城市街景
-- 输出：5个独立类别掩码 + 可视化
-- 处理时间：每张图像约0.3-0.5秒
-
-**SAM实例分割：**
-- 输入：城市街景
-- 输出：每张图像50-200个实例掩码
-- 处理时间：每张图像约1-2秒（优化后）
+> 测试硬件：NVIDIA RTX 3080/4090，输入分辨率 2048×1024
 
 #### 优化建议
 
-1. **批处理**：并行处理多张图像
-2. **GPU显存**：使用混合精度（FP16）处理更大批次
-3. **SAM速度**：将`POINTS_PER_SIDE`从32降至16可提速4倍
-4. **质量与速度**：根据需求调整IOU阈值
+1. **SAM 速度**：`POINTS_PER_SIDE = 16` 约快 4 倍
+2. **噪声过滤**：增大 `MIN_MASK_REGION_AREA` 抑制小噪声区域
+3. **召回率**：降低 `PRED_IOU_THRESH` 检测更多小物体
+4. **显存**：使用 FP16 混合精度扩大批次
 
-### 🔧 配置说明
+#### 类别颜色映射
 
-每个脚本在文件顶部都有可配置参数：
+| 类别 | 脚本 | 对比图颜色 |
+|------|------|:---:|
+| 道路 | ground、multiclass、SAM 3 | 红 |
+| 人行道 | ground、multiclass、SAM 3 | 蓝 |
+| 建筑 | building、SAM 3 | 黄 |
+| 植被 | multiclass、SAM 3 | 绿 |
+| 地形 | multiclass、SAM 3 | 棕 |
+| 天空 | multiclass、SAM 3 | 青 |
+| 所有物体 | SAM 2.1 | 随机（按实例） |
 
-#### 地面分割脚本
-```python
-# run_cityscapes_ground_mask2former.py
-CITYSCAPES_ROOT = r"E:\vipl\VIPL\datadets_cityscapes"
-OUTPUT_ROOT = r"E:\vipl\VIPL\outputs_masks"
-MODEL_PATH = r"E:\vipl\VIPL\models\mask2former\mask2former_cityscapes"
-
-TARGET_LABELS = {
-    "road": ["road"],
-    "sidewalk": ["sidewalk", "side walk", "pavement"]
-}
-```
-
-#### 多类别分割脚本
-```python
-# run_cityscapes_multiclass_mask2former.py
-OUTPUT_ROOT = r"E:\vipl\VIPL\outputs_masks_multiclass"
-
-TARGET_LABELS = {
-    "road": ["road"],
-    "sidewalk": ["sidewalk", "side walk", "pavement"],
-    "vegetation": ["vegetation", "tree", "plant"],
-    "terrain": ["terrain", "ground"],
-    "sky": ["sky"]
-}
-```
-
-#### SAM实例分割脚本
-```python
-# run_cityscapes_ground_sam.py
-OUTPUT_ROOT = r"E:\vipl\VIPL\outputs_masks_sam"
-CHECKPOINT_PATH = r"E:\vipl\VIPL\models\sam2\sam2.1_hiera_large.pt"
-
-# 性能调优
-POINTS_PER_SIDE = 16  # 16=快速，32=精确
-PRED_IOU_THRESH = 0.86  # 越高=质量要求越严格
-STABILITY_SCORE_THRESH = 0.92
-MIN_MASK_REGION_AREA = 200  # 过滤小物体
-```
+---
 
 ### 📚 研究背景
 
-本项目专注于城市场景理解中的地面分割，这对以下领域至关重要：
-- 自动驾驶与导航
-- 城市场景重建
-- 机器人仿真环境
-- 3D场景生成
+支持以下方向的研究：
+- 自动驾驶感知
+- 城市场景重建与仿真
+- 机器人导航与可通行表面检测
+- 基于分割先验的 3D 场景生成
 
 ### 🛠️ 使用技术
 
-- **Mask2Former**：用于全景分割的通用图像分割架构
-  - 论文：[Masked-attention Mask Transformer for Universal Image Segmentation](https://arxiv.org/abs/2112.01527)
-  - 在Cityscapes数据集上预训练（19个类别）
-
-- **SAM 2.1（Segment Anything Model）**：通用实例分割
-  - 论文：[Segment Anything](https://arxiv.org/abs/2304.02643)
-  - 零样本物体分割能力
-
-- **Detectron2**：Facebook AI Research的检测和分割平台
-  - 模块化设计用于计算机视觉任务
-
-- **PyTorch**：深度学习框架（1.10+）
-- **Transformers**：Hugging Face模型库，用于Mask2Former
-- **OpenCV**：计算机视觉操作和图像处理
-- **Cityscapes数据集**：城市街景基准数据集（5000张精细标注）
-
-### 📝 许可证
-
-本项目采用MIT许可证 - 详见 [LICENSE](LICENSE) 文件。
-
-### 🤝 贡献
-
-欢迎贡献！请随时提交Pull Request。
-
-### 📧 联系方式
-
-如有问题或合作机会，请在GitHub上提交issue。
-
-### 🙏 致谢
-
-- [Cityscapes数据集](https://www.cityscapes-dataset.com/) 提供城市场景数据集
-- [Mask2Former](https://github.com/facebookresearch/Mask2Former) 提供分割架构
-- [Detectron2](https://github.com/facebookresearch/detectron2) 提供检测框架
+| 工具 | 用途 | 来源 |
+|------|------|------|
+| Mask2Former | 全景分割 | [arXiv:2112.01527](https://arxiv.org/abs/2112.01527) |
+| SAM 2.1 | 通用实例分割 | [arXiv:2408.00714](https://arxiv.org/abs/2408.00714) |
+| SAM 3 | 文本提示分割 | [Meta AI](https://github.com/facebookresearch/sam3) |
+| Detectron2 | 检测/分割平台 | [GitHub](https://github.com/facebookresearch/detectron2) |
+| PyTorch | 深度学习框架 | [pytorch.org](https://pytorch.org/) |
+| Transformers | 模型加载 | [huggingface.co](https://huggingface.co/) |
+| Cityscapes | 城市基准数据集 | [cityscapes-dataset.com](https://www.cityscapes-dataset.com/) |
 
 ### ⚠️ 注意事项
 
-- **大文件**：由于大小限制，模型文件和数据集不包含在本仓库中
-  - Mask2Former模型：约200MB
-  - SAM 2.1模型：约900MB
-  - Cityscapes数据集：约11GB（leftImg8bit）+ 250MB（gtFine）
+- 模型文件和数据集**不包含**在仓库中（Mask2Former ~200 MB，SAM 2.1 ~900 MB，Cityscapes ~11 GB）
+- Mask2Former 推荐 8 GB+ 显存；SAM 推荐 12 GB+ 显存
+- Cityscapes 数据集需注册并同意许可协议
 
-- **硬件要求**：
-  - Mask2Former推荐使用8GB+显存的GPU
-  - SAM 2.1推荐使用12GB+显存的GPU
-  - 可使用CPU模式但速度显著较慢
+### 📝 许可证
+MIT 许可证 — 详见 [LICENSE](LICENSE)
 
-- **处理时间**：
-  - 取决于数据集大小和硬件性能
-  - 完整Cityscapes数据集（约5000张图像）：使用GPU需30-60分钟
-
-- **数据集许可**：
-  - 请确保遵守Cityscapes数据集许可协议
-  - 学术使用：注册后免费
-  - 商业使用：需要单独许可
-
-- **模型权重**：
-  - 从[Hugging Face](https://huggingface.co/facebook/mask2former-swin-large-cityscapes-panoptic)下载Mask2Former
-  - 从[Meta AI](https://github.com/facebookresearch/segment-anything-2)下载SAM 2.1
-
-### 📈 应用场景
-
-- **自动驾驶**：用于导航的道路和人行道检测
-- **城市规划**：分析街道基础设施和植被覆盖率
-- **3D重建**：场景重建的地面平面提取
-- **机器人**：移动机器人的可通行表面检测
-- **数据集标注**：半自动生成训练数据的掩码
+### 🙏 致谢
+[Cityscapes](https://www.cityscapes-dataset.com/) · [Mask2Former](https://github.com/facebookresearch/Mask2Former) · [SAM](https://github.com/facebookresearch/segment-anything-2) · [Detectron2](https://github.com/facebookresearch/detectron2)
