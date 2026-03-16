@@ -141,3 +141,38 @@ VIPL/repos/detectron2/
 
 # Mask2Former (external repository)
 VIPL/repos/Mask2Former/
+
+# ============================================
+# ALL2ASSET OUTPUTS (large binary files)
+# ============================================
+
+# UrbanVerse GLB cache (~2GB)
+VIPL/repos/all2asset/outputs/urbanverse_cache/
+
+# Scene composed outputs (~1GB)
+VIPL/repos/all2asset/outputs/njuptVolvo/scene/
+
+# Asset matching outputs/cache
+VIPL/repos/asset/outputs/
+
+# 3D point clouds and meshes
+*.glb
+*.ply
+*.pcd
+*.obj
+*.stl
+*.off
+*.npy
+
+# Thumbnails
+*_thumb.png
+*top5_candidates.png
+
+# Parser output masks
+VIPL/repos/parser/outputs_masks/
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.mkv
